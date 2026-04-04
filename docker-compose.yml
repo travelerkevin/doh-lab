@@ -1,0 +1,61 @@
+version: "3.8"
+
+networks:
+  lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+
+services:
+  dns-server:
+    build: ./dns-server
+    container_name: dns-server
+    hostname: dns-server
+    networks:
+      lab-net:
+        ipv4_address: 10.0.0.10
+    restart: unless-stopped
+
+  client:
+    build: ./client
+    container_name: client
+    hostname: client
+    networks:
+      lab-net:
+        ipv4_address: 10.0.0.20
+    dns:
+      - 10.0.0.10
+    depends_on:
+      - dns-server
+    stdin_open: true
+    tty: true
+
+  attacker:
+    build: ./attacker
+    container_name: attacker
+    hostname: attacker
+    networks:
+      lab-net:
+        ipv4_address: 10.0.0.30
+    stdin_open: true
+    tty: true
+
+  monitor:
+    build: ./monitor
+    container_name: monitor
+    hostname: monitor
+    networks:
+      lab-net:
+        ipv4_address: 10.0.0.40
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./monitor/suricata-rules:/etc/suricata/custom-rules
+      - ./monitor/zeek-scripts:/opt/zeek-scripts
+      - ./phase1:/opt/phase1-results
+      - ./phase2:/opt/phase2-results
+      - ./phase3:/opt/phase3-results
+    stdin_open: true
+    tty: true

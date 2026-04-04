@@ -1,0 +1,23 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and pcaps
+*.log
+*.pcap
+*.pcapng
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Results (regenerated during lab)
+phase1/*.pcap
+phase2/*.pcap
+phase3/*.csv
+phase3/*.model

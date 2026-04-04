@@ -1,0 +1,12 @@
+# =============================================
+# Custom Suricata Rules for DNS Tunnel Detection
+# =============================================
+
+# Detect unusually long DNS query names (potential tunneling)
+alert dns any any -> any any (msg:"ALERT - Unusually long DNS query name detected"; dns.query; content:"."; pcre:"/^.{100,}/"; sid:1000001; rev:1;)
+
+# Detect high frequency DNS TXT record queries
+alert dns any any -> any any (msg:"ALERT - DNS TXT record query detected"; dns.query; dns_query; content:"|00 10|"; sid:1000002; rev:1;)
+
+# Detect DNS queries with suspicious subdomain patterns (Base64-like)
+alert dns any any -> any any (msg:"ALERT - Suspicious Base64-like subdomain pattern"; dns.query; pcre:"/^[A-Za-z0-9+\/=]{20,}\./"; sid:1000003; rev:1;)
