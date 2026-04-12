@@ -1,0 +1,15 @@
+# =============================================
+# Custom Suricata Rules for DNS Tunnel Detection
+# =============================================
+
+# Rule 1: Detect DNS queries containing "dnscat" (dnscat2 tunnel signature)
+alert dns any any -> any any (msg:"ALERT - dnscat2 DNS tunnel detected"; dns.query; content:"dnscat"; nocase; sid:1000001; rev:2;)
+
+# Rule 2: Detect DNS queries with long hex-encoded subdomain (tunneling pattern)
+alert dns any any -> any any (msg:"ALERT - Suspicious hex-encoded DNS subdomain"; dns.query; pcre:"/^[a-z]+\.[a-f0-9]{16,}\./"; sid:1000002; rev:2;)
+
+# Rule 3: Detect high-entropy DNS query names (potential data exfiltration)
+alert dns any any -> any any (msg:"ALERT - Unusually long DNS query name detected"; dns.query; pcre:"/^.{50,}/"; sid:1000003; rev:2;)
+
+# Rule 4: Detect DNS MX record queries to non-standard domains (tunneling evasion)
+alert dns any any -> any any (msg:"ALERT - Suspicious DNS MX query to non-mail domain"; dns.query; content:"dnscat"; sid:1000004; rev:1;)
