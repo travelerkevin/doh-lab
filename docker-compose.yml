@@ -28,6 +28,10 @@ services:
       - 10.0.0.10
     depends_on:
       - dns-server
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./phase3:/opt/phase3-results
     stdin_open: true
     tty: true
 
