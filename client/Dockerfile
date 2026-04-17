@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # cloudflared for DoH (Phase 2)
-RUN wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+RUN wget -q https://github.com/cloudflare/cloudflared/releases/download/2023.10.0/cloudflared-linux-amd64.deb \
     && dpkg -i cloudflared-linux-amd64.deb \
     && rm cloudflared-linux-amd64.deb
 

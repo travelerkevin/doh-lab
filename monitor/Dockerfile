@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+
+# Install wget and gnupg required for fetching the Zeek key
+RUN apt-get update && apt-get install -y wget gnupg
+
 # Zeek
 RUN echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' \
     > /etc/apt/sources.list.d/zeek.list \
