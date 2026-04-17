@@ -185,37 +185,5 @@ doh-lab/
 └── docs/                       # Presentation and report
 ```
 
-## Timeline (20 Days)
 
-| Period | Tasks |
-|--------|-------|
-| Day 1-3 | Everyone: clone repo, build environment, verify connectivity |
-| Day 3-10 | Parallel development on each phase |
-| Day 10-14 | Integration: run Phase 1 → 2 → 3 end-to-end |
-| Day 15-20 | Polish, write report, prepare presentation and demo |
-
-## Troubleshooting
-
-**Docker build fails:**
-```bash
-# Clean rebuild from scratch
-docker compose build --no-cache
-```
-
-**Container exits immediately:**
-```bash
-# Check logs for errors
-docker compose logs dns-server
-docker compose logs monitor
-```
-
-**Port conflicts:**
-```bash
-# Check if port 53 is already in use (common on macOS/Linux)
-sudo lsof -i :53
-# If so, stop the local DNS service or change the port mapping in docker-compose.yml
-```
-
-**Windows-specific:**
-- Make sure WSL2 is enabled: Settings → General → Use the WSL 2 based engine
 - If containers cannot reach the internet, restart Docker Desktop
