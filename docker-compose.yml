@@ -37,6 +37,7 @@ services:
 
   attacker:
     build: ./attacker
+    platform: linux/amd64
     container_name: attacker
     hostname: attacker
     networks:

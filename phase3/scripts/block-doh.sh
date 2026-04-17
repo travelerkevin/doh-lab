@@ -75,10 +75,14 @@ test_rules() {
     PASS=0
     FAIL=0
 
+    # Regex that matches an IPv4 address on a line by itself — a successful A record
+    IPV4_RE='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+
     # Test 1: Enterprise DNS should work
     echo "--- Test 1: Enterprise DNS (should PASS) ---"
-    if dig @"$ENTERPRISE_DNS" google.com +short +time=3 +tries=1 2>/dev/null | grep -q .; then
-        echo "[PASS] Enterprise DNS resolution works"
+    ANSWER=$(dig @"$ENTERPRISE_DNS" google.com +short +time=3 +tries=1 2>/dev/null)
+    if echo "$ANSWER" | grep -qE "$IPV4_RE"; then
+        echo "[PASS] Enterprise DNS resolution works (got $(echo "$ANSWER" | grep -m1 -E "$IPV4_RE"))"
         ((PASS++))
     else
         echo "[FAIL] Enterprise DNS resolution failed"
@@ -89,7 +93,7 @@ test_rules() {
     # Test 2: Direct DoH to Cloudflare should be blocked
     echo "--- Test 2: DoH to Cloudflare 1.1.1.1 (should be BLOCKED) ---"
     if curl -s --max-time 5 "https://1.1.1.1/dns-query?name=google.com&type=A" \
-        -H "Accept: application/dns-json" 2>/dev/null | grep -q "Answer"; then
+        -H "Accept: application/dns-json" 2>/dev/null | grep -q '"Answer"'; then
         echo "[FAIL] DoH to Cloudflare still works — not blocked"
         ((FAIL++))
     else
@@ -101,7 +105,7 @@ test_rules() {
     # Test 3: Direct DoH to Google should be blocked
     echo "--- Test 3: DoH to Google 8.8.8.8 (should be BLOCKED) ---"
     if curl -s --max-time 5 "https://dns.google/resolve?name=google.com&type=A" \
-        --resolve "dns.google:443:8.8.8.8" 2>/dev/null | grep -q "Answer"; then
+        --resolve "dns.google:443:8.8.8.8" 2>/dev/null | grep -q '"Answer"'; then
         echo "[FAIL] DoH to Google still works — not blocked"
         ((FAIL++))
     else
@@ -112,27 +116,30 @@ test_rules() {
 
     # Test 4: cloudflared DoH proxy should fail to resolve
     echo "--- Test 4: cloudflared DoH proxy (should be BLOCKED) ---"
+    pkill -f "cloudflared proxy-dns --port 5053" 2>/dev/null || true
     cloudflared proxy-dns --port 5053 --upstream "https://1.1.1.1/dns-query" &>/dev/null &
     CF_PID=$!
-    sleep 2
-    if dig @127.0.0.1 -p 5053 google.com +short +time=3 +tries=1 2>/dev/null | grep -q .; then
-        echo "[FAIL] cloudflared proxy still resolves — not blocked"
+    sleep 3
+    ANSWER=$(dig @127.0.0.1 -p 5053 google.com +short +time=5 +tries=1 2>/dev/null)
+    if echo "$ANSWER" | grep -qE "$IPV4_RE"; then
+        echo "[FAIL] cloudflared proxy still resolves — not blocked (got $(echo "$ANSWER" | grep -m1 -E "$IPV4_RE"))"
         ((FAIL++))
     else
-        echo "[PASS] cloudflared DoH proxy is blocked"
+        echo "[PASS] cloudflared DoH proxy is blocked (no answer)"
         ((PASS++))
     fi
-    kill "$CF_PID" 2>/dev/null
-    wait "$CF_PID" 2>/dev/null
+    kill "$CF_PID" 2>/dev/null || true
+    wait "$CF_PID" 2>/dev/null || true
     echo ""
 
     # Test 5: Direct DNS to external server should be blocked
     echo "--- Test 5: Direct DNS to 8.8.8.8:53 (should be BLOCKED) ---"
-    if dig @8.8.8.8 google.com +short +time=3 +tries=1 2>/dev/null | grep -q .; then
-        echo "[FAIL] External DNS still works — not blocked"
+    ANSWER=$(dig @8.8.8.8 google.com +short +time=3 +tries=1 2>/dev/null)
+    if echo "$ANSWER" | grep -qE "$IPV4_RE"; then
+        echo "[FAIL] External DNS still works — not blocked (got $(echo "$ANSWER" | grep -m1 -E "$IPV4_RE"))"
         ((FAIL++))
     else
-        echo "[PASS] External DNS is blocked"
+        echo "[PASS] External DNS is blocked (no answer)"
         ((PASS++))
     fi
     echo ""
